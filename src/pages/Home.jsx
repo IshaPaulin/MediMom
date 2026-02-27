@@ -105,38 +105,6 @@ const Home = () => {
         </svg>
       </div>
 
-      {/* Features Section */}
-      <section id="features" style={{ backgroundColor: '#F6F3EE', padding: '80px 32px' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '64px' }}>
-            <p className="sans" style={{ color: '#9CAF88', fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '16px' }}>What we offer</p>
-            <h2 className="serif" style={{ fontSize: '48px', fontWeight: 300, color: '#487A7B', lineHeight: 1.15, marginBottom: '16px' }}>
-              Gentle support for
-              <span style={{ color: '#D4A5A5', fontStyle: 'italic', display: 'block' }}>every step</span>
-            </h2>
-            <p className="sans" style={{ color: '#9CAF88', fontSize: '16px', fontWeight: 300 }}>Designed with love for the early weeks</p>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
-            {[
-              { icon: <FaHandPaper />, color: '#D4A5A5', title: 'Hands-Free Logging', desc: "Log feeds and sleep with simple hand gestures. Perfect for those 3 AM feeds when you're holding your baby." },
-              { icon: <FaHeart />,     color: '#9CAF88', title: 'Mood Care',          desc: 'Gentle check-ins that notice when you need extra support. Because your mental health matters too.' },
-              { icon: <FaBaby />,      color: '#487A7B', title: 'Baby Tracker',       desc: 'Keep track of feeds, sleep, and diapers. Generate beautiful PDFs for your pediatrician visits.' },
-              { icon: <FaPhoneAlt />,  color: '#D4A5A5', title: 'Quick Help',         desc: 'Emergency guidelines and helplines at your fingertips. One gesture away when you need it most.' },
-              { icon: <FaChartLine />, color: '#9CAF88', title: 'Health Insights',    desc: "See patterns in your baby's routine and your mood. Knowledge brings peace of mind." },
-              { icon: <FaLeaf />,      color: '#487A7B', title: 'Gentle Reminders',   desc: 'Kind nudges to drink water, rest, and breathe. Because taking care of you matters too.' },
-            ].map((f, i) => (
-              <div key={i} className="feature-card">
-                <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: f.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
-                  <span style={{ color: f.color, fontSize: '18px' }}>{f.icon}</span>
-                </div>
-                <h3 className="serif" style={{ fontSize: '22px', fontWeight: 400, color: '#487A7B', marginBottom: '12px' }}>{f.title}</h3>
-                <p className="sans" style={{ color: '#8BA8A9', fontSize: '15px', lineHeight: 1.75, fontWeight: 300 }}>{f.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* How It Works */}
       <section style={{ backgroundColor: '#FFFFFF', padding: '80px 32px' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
@@ -164,19 +132,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Testimonial */}
-      <section style={{ backgroundColor: '#F6F3EE', padding: '80px 32px' }}>
-        <div style={{ maxWidth: '780px', margin: '0 auto', textAlign: 'center' }}>
-          <FaHeart style={{ color: '#D4A5A5', fontSize: '24px', display: 'block', margin: '0 auto 32px' }} />
-          <blockquote className="serif" style={{ fontSize: 'clamp(22px, 3vw, 32px)', fontWeight: 300, color: '#487A7B', lineHeight: 1.6, fontStyle: 'italic', marginBottom: '36px' }}>
-            "MediMom understood what I needed before I even knew it. The gesture logging at 3AM, the gentle check-ins when I was feeling low — it's like having a wise friend who's been there."
-          </blockquote>
-          <div className="divider-rose" style={{ margin: '0 auto 24px' }} />
-          <p className="sans" style={{ color: '#487A7B', fontSize: '15px', fontWeight: 400 }}>Priya, mother of 3-month-old</p>
-          <p className="sans" style={{ color: '#9CAF88', fontSize: '14px', fontWeight: 300 }}>Kerala, India</p>
-        </div>
-      </section>
-
       {/* Trust & Safety */}
       <section style={{ backgroundColor: '#FFFFFF', padding: '80px 32px' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
@@ -201,24 +156,6 @@ const Home = () => {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section style={{ backgroundColor: '#487A7B', padding: '80px 32px' }}>
-        <div style={{ maxWidth: '700px', margin: '0 auto', textAlign: 'center' }}>
-          <h2 className="serif" style={{ fontSize: '52px', fontWeight: 300, color: '#F6F3EE', lineHeight: 1.15, marginBottom: '20px' }}>
-            Ready to feel
-            <span style={{ color: '#D4A5A5', fontStyle: 'italic', display: 'block' }}>supported?</span>
-          </h2>
-          <p className="sans" style={{ color: 'rgba(246,243,238,0.75)', fontSize: '17px', marginBottom: '44px', lineHeight: 1.75, fontWeight: 300 }}>
-            Join thousands of mothers who never have to mother alone.
-          </p>
-          {!currentUser && (
-            <Link to="/signup" style={{ background: '#D4A5A5', color: '#487A7B', padding: '18px 48px', borderRadius: '60px', fontFamily: 'DM Sans, sans-serif', fontWeight: 500, fontSize: '16px', textDecoration: 'none', display: 'inline-block', transition: 'all 0.3s', letterSpacing: '0.02em' }}>
-              Start your journey ✨
-            </Link>
-          )}
         </div>
       </section>
 

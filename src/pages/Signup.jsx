@@ -172,7 +172,7 @@ const Signup = () => {
                 </div>
                 <div>
                   <label className="form-label">Age in weeks <span className="optional-label">optional</span></label>
-                  <input type="text" name="babyAge" value={formData.babyAge} onChange={handleChange} className="form-input" placeholder="e.g. 3 weeks, 2 months" />
+                  <input type="text" name="babyAge" value={formData.babyAge} onChange={handleChange} className="form-input" placeholder="e.g. 3 weeks" />
                 </div>
               </div>
 

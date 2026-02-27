@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import CameraComponent from '../components/Camera';
 import BabyTracker from '../components/BabyTracker';
-import CryAnalyzer from '../components/CryAnalyzer';
 import { FaSignOutAlt, FaBaby, FaHeart, FaHandPaper, FaPhone, FaSms, FaTimes } from 'react-icons/fa';
 
 const Dashboard = () => {
@@ -231,8 +230,7 @@ const Dashboard = () => {
           {[
             { id:'gesture', icon:<FaHandPaper style={{fontSize:'13px'}}/>, label:'Gesture Logger' },
             { id:'baby',    icon:<FaBaby      style={{fontSize:'13px'}}/>, label:'Baby Tracker'   },
-            { id:'mood',    icon:<FaHeart     style={{fontSize:'13px'}}/>, label:'Mood'           },
-            { id:'cry',     icon:'🎵', label:'Cry Analyzer' },
+            { id:'mood',    icon:<FaHeart     style={{fontSize:'13px'}}/>, label:'Mood'           },            
           ].map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className={`tab-btn ${activeTab === tab.id ? 'tab-active' : 'tab-inactive'}`}>
@@ -370,12 +368,7 @@ const Dashboard = () => {
               <h3 className="serif" style={{ fontSize:'28px', fontWeight:300, color:'#487A7B', marginBottom:'8px' }}>Mood Tracker</h3>
               <p className="sans" style={{ color:'#9CAF88', fontSize:'15px', fontWeight:300 }}>Coming soon — check in daily and track your wellbeing</p>
             </div>
-          )}
-
-          {/* ══ Cry Analyzer tab ════════════════════════════════ */}
-          {activeTab === 'cry' && (
-            <CryAnalyzer />
-          )}
+          )}         
         </div>
       </main>
 

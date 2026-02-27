@@ -103,7 +103,6 @@ const Dashboard = () => {
               <FaHeart style={{ color: '#D4A5A5', fontSize: '14px' }} />
               <span className="serif" style={{ fontSize: '20px', color: '#487A7B', fontWeight: 400 }}>MediMom</span>
             </Link>
-            <span style={{ fontSize: '11px', padding: '3px 10px', borderRadius: '20px', backgroundColor: '#9CAF88', color: '#F6F3EE', letterSpacing: '0.05em', fontFamily: 'DM Sans, sans-serif' }}>2.1</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ color: '#487A7B', fontSize: '14px', fontFamily: 'DM Sans, sans-serif', fontWeight: 300 }}>

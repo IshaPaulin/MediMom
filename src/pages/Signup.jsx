@@ -171,8 +171,8 @@ const Signup = () => {
                   <input type="text" name="babyName" value={formData.babyName} onChange={handleChange} className="form-input" placeholder="Baby's name" />
                 </div>
                 <div>
-                  <label className="form-label">Baby's age <span className="optional-label">optional</span></label>
-                  <input type="text" name="babyAge" value={formData.babyAge} onChange={handleChange} className="form-input" placeholder="e.g. 3 weeks" />
+                  <label className="form-label">Age in weeks <span className="optional-label">optional</span></label>
+                  <input type="text" name="babyAge" value={formData.babyAge} onChange={handleChange} className="form-input" placeholder="e.g. 3 weeks, 2 months" />
                 </div>
               </div>
 

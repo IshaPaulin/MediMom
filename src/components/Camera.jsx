@@ -79,16 +79,6 @@ const CameraComponent = ({ onGestureDetected }) => {
 
     // Count extended fingers
     const extendedCount = [indexExtended, middleExtended, ringExtended, pinkyExtended].filter(Boolean).length;
-
-    // Thumbs Up: thumb extended, all other fingers folded
-    if (thumbExtended && extendedCount === 0) {
-      return 'THUMBS_UP';
-    }
-    
-    // Fist: no fingers extended
-    if (!thumbExtended && extendedCount === 0) {
-      return 'FIST';
-    }
     
     // Open Palm: all fingers extended
     if (thumbExtended && extendedCount === 4) {

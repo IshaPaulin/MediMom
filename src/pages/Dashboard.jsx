@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import CameraComponent from '../components/Camera';
 import BabyTracker from '../components/BabyTracker';
+import CryAnalyzer from '../components/CryAnalyzer';
 import { FaSignOutAlt, FaBaby, FaHeart, FaHandPaper, FaPhone, FaSms, FaTimes } from 'react-icons/fa';
 
 const Dashboard = () => {
@@ -225,12 +226,13 @@ const Dashboard = () => {
       {/* ── Main ───────────────────────────────────────────────── */}
       <main style={{ maxWidth:'900px', margin:'0 auto', padding:'36px 24px 120px' }}>
 
-        {/* Tabs */}
+        {/* Tabs - Updated with Cry Analyzer */}
         <div style={{ display:'flex', gap:'10px', marginBottom:'28px', overflowX:'auto', paddingBottom:'4px' }}>
           {[
             { id:'gesture', icon:<FaHandPaper style={{fontSize:'13px'}}/>, label:'Gesture Logger' },
             { id:'baby',    icon:<FaBaby      style={{fontSize:'13px'}}/>, label:'Baby Tracker'   },
             { id:'mood',    icon:<FaHeart     style={{fontSize:'13px'}}/>, label:'Mood'           },
+            { id:'cry',     icon:'🎵', label:'Cry Analyzer' },
           ].map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className={`tab-btn ${activeTab === tab.id ? 'tab-active' : 'tab-inactive'}`}>
@@ -291,7 +293,7 @@ const Dashboard = () => {
                 </button>
               </div>
 
-              {/* ── Health quick-log row ── NEW ────────────────── */}
+              {/* Health quick-log row */}
               <div style={{ display:'flex', gap:'10px', marginBottom:'24px', flexWrap:'wrap' }}>
                 <button className="logger-quick" onClick={() => setShowSymptomModal(true)}
                   style={{ background:'rgba(212,165,165,0.08)', color:'#8B5E5E', border:'1px solid rgba(212,165,165,0.2)' }}>
@@ -368,6 +370,11 @@ const Dashboard = () => {
               <h3 className="serif" style={{ fontSize:'28px', fontWeight:300, color:'#487A7B', marginBottom:'8px' }}>Mood Tracker</h3>
               <p className="sans" style={{ color:'#9CAF88', fontSize:'15px', fontWeight:300 }}>Coming soon — check in daily and track your wellbeing</p>
             </div>
+          )}
+
+          {/* ══ Cry Analyzer tab ════════════════════════════════ */}
+          {activeTab === 'cry' && (
+            <CryAnalyzer />
           )}
         </div>
       </main>

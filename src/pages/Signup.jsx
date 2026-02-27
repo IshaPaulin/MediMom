@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FaHeart } from 'react-icons/fa';
+import { FcGoogle } from 'react-icons/fc';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -9,8 +10,8 @@ const Signup = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
-  const { signup } = useAuth();
+
+  const { signup, googleSignIn } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -31,13 +32,26 @@ const Signup = () => {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    try {
+      setError('');
+      setLoading(true);
+      await googleSignIn();
+      navigate('/dashboard');
+    } catch (err) {
+      setError('Failed to sign in with Google.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#F6F3EE', display: 'flex', flexDirection: 'column' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap');
         .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
-        .sans { font-family: 'DM Sans', system-ui, sans-serif; }
-        
+        .sans  { font-family: 'DM Sans', system-ui, sans-serif; }
+
         .form-input {
           width: 100%;
           padding: 13px 18px;
@@ -54,7 +68,7 @@ const Signup = () => {
         }
         .form-input::placeholder { color: #B8C9C9; }
         .form-input:focus { border-color: #487A7B; background: #FFFFFF; box-shadow: 0 0 0 4px rgba(72,122,123,0.08); }
-        
+
         .form-label {
           display: block;
           margin-bottom: 7px;
@@ -64,40 +78,12 @@ const Signup = () => {
           color: #487A7B;
           letter-spacing: 0.04em;
         }
-        
-        .optional-label {
-          color: #B8C9C9;
-          font-size: 11px;
-          font-weight: 300;
-          margin-left: 6px;
-        }
+        .optional-label { color: #B8C9C9; font-size: 11px; font-weight: 300; margin-left: 6px; }
 
-        .form-section-divider {
-          position: relative;
-          text-align: center;
-          margin: 8px 0 4px;
-        }
-        .form-section-divider::before {
-          content: '';
-          position: absolute;
-          top: 50%;
-          left: 0;
-          right: 0;
-          height: 1px;
-          background: rgba(212,165,165,0.25);
-        }
-        .form-section-divider span {
-          position: relative;
-          background: #FFFFFF;
-          padding: 0 12px;
-          font-family: 'DM Sans', sans-serif;
-          font-size: 11px;
-          font-weight: 300;
-          color: #C5D3D3;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-        }
-        
+        .form-section-divider { position: relative; text-align: center; margin: 8px 0 4px; }
+        .form-section-divider::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: rgba(212,165,165,0.25); }
+        .form-section-divider span { position: relative; background: #FFFFFF; padding: 0 12px; font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 300; color: #C5D3D3; letter-spacing: 0.08em; text-transform: uppercase; }
+
         .btn-submit {
           width: 100%;
           padding: 15px;
@@ -114,6 +100,31 @@ const Signup = () => {
         }
         .btn-submit:hover:not(:disabled) { background: #3a6566; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(72,122,123,0.25); }
         .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-google {
+          width: 100%;
+          padding: 13px;
+          border-radius: 14px;
+          border: 1.5px solid rgba(72,122,123,0.25);
+          background: #FFFFFF;
+          color: #487A7B;
+          font-family: 'DM Sans', sans-serif;
+          font-size: 15px;
+          font-weight: 400;
+          cursor: pointer;
+          transition: all 0.25s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          letter-spacing: 0.01em;
+        }
+        .btn-google:hover:not(:disabled) { background: #F6F3EE; border-color: #487A7B; transform: translateY(-1px); }
+        .btn-google:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .divider { display: flex; align-items: center; gap: 12px; }
+        .divider-line { flex: 1; height: 1px; background: rgba(212,165,165,0.25); }
+        .divider-text { font-family: 'DM Sans', sans-serif; font-size: 12px; color: #C5D3D3; letter-spacing: 0.06em; }
       `}</style>
 
       {/* Nav */}
@@ -147,9 +158,21 @@ const Signup = () => {
               </div>
             )}
 
+            {/* Google */}
+            <button onClick={handleGoogleSignIn} disabled={loading} className="btn-google" style={{ marginBottom: '20px' }}>
+              <FcGoogle style={{ fontSize: '20px' }} />
+              Continue with Google
+            </button>
+
+            {/* Divider */}
+            <div className="divider" style={{ marginBottom: '20px' }}>
+              <div className="divider-line" />
+              <span className="divider-text">or sign up with email</span>
+              <div className="divider-line" />
+            </div>
+
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
 
-              {/* Your info */}
               <div>
                 <label className="form-label">Your name</label>
                 <input type="text" name="name" required value={formData.name} onChange={handleChange} className="form-input" placeholder="Enter your name" />
@@ -160,7 +183,6 @@ const Signup = () => {
                 <input type="email" name="email" required value={formData.email} onChange={handleChange} className="form-input" placeholder="your@email.com" />
               </div>
 
-              {/* Baby info */}
               <div className="form-section-divider">
                 <span>Baby info — optional</span>
               </div>
@@ -176,7 +198,6 @@ const Signup = () => {
                 </div>
               </div>
 
-              {/* Password */}
               <div className="form-section-divider" style={{ marginTop: '4px' }}>
                 <span>Create password</span>
               </div>

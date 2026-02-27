@@ -8,6 +8,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import GestureCollector from './components/GestureCollector';
 import ChatBot from './components/Chatbot';
 import GestureRecognizer from './components/GestureRecognizer';
+import GrowthMilestones from './pages/GrowthMilestones';
 
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        <Route path="/growth" element={<ProtectedRoute><GrowthMilestones /></ProtectedRoute>} />
       </Routes>
       <ChatBot />
     </>

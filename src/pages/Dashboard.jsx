@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import CameraComponent from '../components/Camera';
 import BabyTracker from '../components/BabyTracker';
-import { FaSignOutAlt, FaBaby, FaHeart, FaHandPaper, FaPhone, FaSms, FaTimes } from 'react-icons/fa';
+import { FaSignOutAlt, FaBaby, FaHeart, FaHandPaper, FaPhone, FaSms, FaTimes, FaLeaf } from 'react-icons/fa';
 
 const Dashboard = () => {
   const { currentUser, logout } = useAuth();
@@ -230,9 +230,13 @@ const Dashboard = () => {
           {[
             { id:'gesture', icon:<FaHandPaper style={{fontSize:'13px'}}/>, label:'Gesture Logger' },
             { id:'baby',    icon:<FaBaby      style={{fontSize:'13px'}}/>, label:'Baby Tracker'   },
-            { id:'mood',    icon:<FaHeart     style={{fontSize:'13px'}}/>, label:'Mood'           },            
+            { id:'mood',    icon:<FaHeart     style={{fontSize:'13px'}}/>, label:'Mood'           },
+            { id:'growth', icon:<FaLeaf style={{fontSize:'13px'}}/>, label:'Growth & Milestones' },            
           ].map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+  <button key={tab.id} onClick={() => {
+    if (tab.id === 'growth') { navigate('/growth'); return; }
+    setActiveTab(tab.id);
+  }}
               className={`tab-btn ${activeTab === tab.id ? 'tab-active' : 'tab-inactive'}`}>
               {tab.icon}{tab.label}
             </button>
@@ -350,6 +354,7 @@ const Dashboard = () => {
                   ))}
                 </div>
               )}
+              
             </div>
           )}
 

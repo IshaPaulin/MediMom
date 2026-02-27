@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import CameraComponent from '../components/Camera';
-import { FaSignOutAlt, FaBaby, FaHeart, FaHandPaper, FaPhone, FaSms,  FaTimes } from 'react-icons/fa';
+import BabyTracker from '../components/BabyTracker';
+import { FaSignOutAlt, FaBaby, FaHeart, FaHandPaper, FaPhone, FaSms, FaTimes } from 'react-icons/fa';
 
 const Dashboard = () => {
   const { currentUser, logout } = useAuth();
@@ -48,7 +49,7 @@ const Dashboard = () => {
     setLogs(prev => [entry, ...prev].slice(0, 15));
   };
 
-  // ── Feeding toggle — no side tracking ─────────────────────────
+  // ── Feeding toggle ─────────────────────────────────────────────
   const handleFeedingToggle = () => {
     if (feedingIntervalRef.current) {
       clearInterval(feedingIntervalRef.current);
@@ -95,20 +96,19 @@ const Dashboard = () => {
     }
   };
 
-  // ── Gesture handler — only OPEN_PALM triggers emergency ───────
+  // ── Gesture handler ────────────────────────────────────────────
   const handleGesture = (gesture) => {
     setLastGesture(gesture);
     if (navigator.vibrate) navigator.vibrate(50);
     if (gesture === 'OPEN_PALM') setShowHelp(true);
   };
 
-  // ── Emergency helpers ─────────────────────────────────────────
+  // ── Emergency helpers ──────────────────────────────────────────
   const handleEmergencyCall = () => { window.location.href = 'tel:0471-2552056'; };
   const handleAmbulanceCall = () => { window.location.href = 'tel:108'; };
   const handleEmergencySMS  = () => {
     window.location.href = `sms:0471-2552056?body=${encodeURIComponent('URGENT: I need immediate assistance. Please call me back.')}`;
   };
-  
 
   const saveEmergencyContact = () => {
     if (!emergencyInput) return;
@@ -159,7 +159,7 @@ const Dashboard = () => {
         .close-btn:hover { background: rgba(212,165,165,0.2); }
       `}</style>
 
-      {/* ── Header ───────────────────────────────────────────────── */}
+      {/* ── Header ─────────────────────────────────────────────── */}
       <header className="sans" style={{ background: '#FFFFFF', borderBottom: '1px solid rgba(212,165,165,0.25)', padding: '16px 32px', position: 'sticky', top: 0, zIndex: 50 }}>
         <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
@@ -177,7 +177,7 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* ── Main ─────────────────────────────────────────────────── */}
+      {/* ── Main ───────────────────────────────────────────────── */}
       <main style={{ maxWidth: '900px', margin: '0 auto', padding: '36px 24px 120px' }}>
 
         {/* Tabs */}
@@ -195,7 +195,7 @@ const Dashboard = () => {
 
         <div style={{ background: '#FFFFFF', borderRadius: '28px', padding: '40px', boxShadow: '0 4px 40px rgba(72,122,123,0.08)', border: '1px solid rgba(212,165,165,0.1)' }}>
 
-          {/* ── Gesture Logger ──────────────────────────────────── */}
+          {/* ── Gesture Logger ────────────────────────────────── */}
           {activeTab === 'gesture' && (
             <div>
               <h2 className="serif" style={{ fontSize: '36px', fontWeight: 300, color: '#487A7B', marginBottom: '6px' }}>Smart Gesture Logger</h2>
@@ -244,7 +244,7 @@ const Dashboard = () => {
                 </button>
               </div>
 
-              {/* Open Palm info */}
+              {/* Open Palm hint */}
               <div style={{ padding: '16px 20px', borderRadius: '18px', background: 'rgba(72,122,123,0.06)', border: '1px solid rgba(72,122,123,0.12)', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <div style={{ fontSize: '36px' }}>✋</div>
                 <div>
@@ -286,16 +286,12 @@ const Dashboard = () => {
             </div>
           )}
 
-          {/* ── Baby Tracker ─────────────────────────────────────── */}
+          {/* ── Baby Tracker ──────────────────────────────────── */}
           {activeTab === 'baby' && (
-            <div style={{ textAlign: 'center', padding: '48px 0' }}>
-              <div style={{ fontSize: '52px', marginBottom: '16px' }}>👶</div>
-              <h3 className="serif" style={{ fontSize: '28px', fontWeight: 300, color: '#487A7B', marginBottom: '8px' }}>Baby Tracker</h3>
-              <p className="sans" style={{ color: '#9CAF88', fontSize: '15px', fontWeight: 300 }}>Coming soon — track feeds, sleep, and diapers</p>
-            </div>
+            <BabyTracker babyName={currentUser?.displayName || null} />
           )}
 
-          {/* ── Mood ─────────────────────────────────────────────── */}
+          {/* ── Mood ─────────────────────────────────────────── */}
           {activeTab === 'mood' && (
             <div style={{ textAlign: 'center', padding: '48px 0' }}>
               <div style={{ fontSize: '52px', marginBottom: '16px' }}>💙</div>
@@ -306,7 +302,7 @@ const Dashboard = () => {
         </div>
       </main>
 
-      {/* ── FABs ─────────────────────────────────────────────────── */}
+      {/* ── FABs ───────────────────────────────────────────────── */}
       <div style={{ position: 'fixed', bottom: '28px', right: '28px', display: 'flex', flexDirection: 'column', gap: '12px', zIndex: 40 }}>
         <button onClick={handleFeedingToggle} className="quick-fab" style={{ background: feedingActive ? '#c49090' : '#487A7B', color: '#F6F3EE' }} title={feedingActive ? 'Stop Feeding' : 'Start Feeding'}>
           {feedingActive ? '⏹' : '🍼'}
@@ -319,15 +315,11 @@ const Dashboard = () => {
         </button>
       </div>
 
-      {/* ── Help Modal ───────────────────────────────────────────── */}
+      {/* ── Help Modal ─────────────────────────────────────────── */}
       {showHelp && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(60,75,75,0.45)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', zIndex: 100 }}>
           <div style={{ background: '#FFFFFF', borderRadius: '28px', padding: '36px', maxWidth: '460px', width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.15)', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}>
-
-            {/* ✕ Close */}
-            <button className="close-btn" onClick={() => setShowHelp(false)}>
-              <FaTimes />
-            </button>
+            <button className="close-btn" onClick={() => setShowHelp(false)}><FaTimes /></button>
 
             <h2 className="serif" style={{ fontSize: '32px', fontWeight: 300, color: '#487A7B', marginBottom: '6px' }}>🆘 Emergency Help</h2>
             <p className="sans" style={{ color: '#9CAF88', fontSize: '14px', fontWeight: 300, marginBottom: '24px' }}>One tap is all it takes</p>
@@ -345,13 +337,12 @@ const Dashboard = () => {
               </button>
             </div>
 
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
-              <button onClick={handleEmergencySMS} className="emergency-btn" style={{ background: 'rgba(156,175,136,0.12)', border: '1px solid rgba(156,175,136,0.3)' }}>
-                <FaSms style={{ color: '#9CAF88', fontSize: '22px' }} />
-                <div className="sans" style={{ color: '#487A7B', fontSize: '13px', fontWeight: 500 }}>Send SMS</div>
-                <div className="sans" style={{ color: '#9CAF88', fontSize: '11px' }}>To helpline</div>
-              </button>
-            </div>
+            {/* SMS — full width since share location is removed */}
+            <button onClick={handleEmergencySMS} style={{ width: '100%', padding: '16px', borderRadius: '16px', border: '1px solid rgba(156,175,136,0.3)', background: 'rgba(156,175,136,0.12)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer', marginBottom: '20px', transition: 'all 0.2s' }}>
+              <FaSms style={{ color: '#9CAF88', fontSize: '22px' }} />
+              <div className="sans" style={{ color: '#487A7B', fontSize: '13px', fontWeight: 500 }}>Send SMS to Helpline</div>
+              <div className="sans" style={{ color: '#9CAF88', fontSize: '11px' }}>0471-2552056</div>
+            </button>
 
             <button onClick={() => { setShowHelp(false); setShowEmergencyModal(true); }} style={{ width: '100%', padding: '12px', borderRadius: '14px', background: '#F6F3EE', border: '1px solid rgba(72,122,123,0.15)', color: '#487A7B', fontFamily: 'DM Sans, sans-serif', fontSize: '14px', cursor: 'pointer', marginBottom: '20px', transition: 'all 0.2s' }}>
               {emergencyContact ? `📞 Contact: ${emergencyContact}` : '+ Set emergency contact'}
@@ -370,22 +361,17 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* ── Emergency Contact Modal ───────────────────────────────── */}
+      {/* ── Emergency Contact Modal ─────────────────────────────── */}
       {showEmergencyModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(60,75,75,0.45)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', zIndex: 100 }}>
           <div style={{ background: '#FFFFFF', borderRadius: '28px', padding: '36px', maxWidth: '420px', width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.15)', position: 'relative' }}>
-
-            {/* ✕ Close */}
-            <button className="close-btn" onClick={() => setShowEmergencyModal(false)}>
-              <FaTimes />
-            </button>
-
+            <button className="close-btn" onClick={() => setShowEmergencyModal(false)}><FaTimes /></button>
             <h2 className="serif" style={{ fontSize: '28px', fontWeight: 300, color: '#487A7B', marginBottom: '8px' }}>Emergency Contact</h2>
             <p className="sans" style={{ color: '#9CAF88', fontSize: '14px', fontWeight: 300, marginBottom: '24px' }}>Saved locally on your device</p>
             <input type="tel" className="modal-input" placeholder="Enter phone number" value={emergencyInput} onChange={(e) => setEmergencyInput(e.target.value)} style={{ marginBottom: '16px' }} />
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={saveEmergencyContact} style={{ flex: 1, padding: '14px', borderRadius: '14px', background: '#487A7B', color: '#F6F3EE', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '15px', transition: 'all 0.2s' }}>Save</button>
-              <button onClick={() => setShowEmergencyModal(false)} style={{ flex: 1, padding: '14px', borderRadius: '14px', background: '#F6F3EE', color: '#487A7B', border: '1.5px solid rgba(72,122,123,0.2)', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '15px', transition: 'all 0.2s' }}>Cancel</button>
+              <button onClick={saveEmergencyContact} style={{ flex: 1, padding: '14px', borderRadius: '14px', background: '#487A7B', color: '#F6F3EE', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '15px' }}>Save</button>
+              <button onClick={() => setShowEmergencyModal(false)} style={{ flex: 1, padding: '14px', borderRadius: '14px', background: '#F6F3EE', color: '#487A7B', border: '1.5px solid rgba(72,122,123,0.2)', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '15px' }}>Cancel</button>
             </div>
           </div>
         </div>

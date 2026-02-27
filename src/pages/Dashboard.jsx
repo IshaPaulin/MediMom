@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import CameraComponent from '../components/Camera';
-import { FaSignOutAlt, FaBaby, FaHeart, FaHandPaper } from 'react-icons/fa';
+import { FaSignOutAlt, FaBaby, FaHeart, FaHandPaper, FaPhone, FaSms, FaMapMarkerAlt, FaClock } from 'react-icons/fa';
 
 const Dashboard = () => {
   const { currentUser, logout } = useAuth();
@@ -11,255 +11,619 @@ const Dashboard = () => {
   const [logs, setLogs] = useState([]);
   const [showHelp, setShowHelp] = useState(false);
   const [activeTab, setActiveTab] = useState('gesture');
+  
+  // Timer states
+  const [feedingTimer, setFeedingTimer] = useState(null);
+  const [feedingStartTime, setFeedingStartTime] = useState(null);
+  const [feedingDuration, setFeedingDuration] = useState(0);
+  const [feedingSide, setFeedingSide] = useState('left'); // left or right
+  
+  // Sleep tracking
+  const [sleepTimer, setSleepTimer] = useState(null);
+  const [sleepStartTime, setSleepStartTime] = useState(null);
+  const [sleepDuration, setSleepDuration] = useState(0);
+  const [sleepPatterns, setSleepPatterns] = useState([]);
+  
+  // Emergency contact
+  const [emergencyContact, setEmergencyContact] = useState('');
+  const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+
+  // Load emergency contact from localStorage
+  useEffect(() => {
+    const savedContact = localStorage.getItem('emergencyContact');
+    if (savedContact) {
+      setEmergencyContact(savedContact);
+    }
+  }, []);
+
+  // Timer effect for feeding - cleanup
+  useEffect(() => {
+    return () => {
+      if (feedingTimer) {
+        clearInterval(feedingTimer);
+      }
+    };
+  }, [feedingTimer]);
+
+  // Timer effect for sleep - cleanup
+  useEffect(() => {
+    return () => {
+      if (sleepTimer) {
+        clearInterval(sleepTimer);
+      }
+    };
+  }, [sleepTimer]);
 
   const handleGesture = (gesture) => {
     setLastGesture(gesture);
-    if (navigator.vibrate) navigator.vibrate(50);
+    
+    if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+
     switch(gesture) {
-      case 'THUMBS_UP': addLog('Feeding'); break;
-      case 'FIST': addLog('Baby Sleep'); break;
-      case 'OPEN_PALM': setShowHelp(true); break;
-      default: break;
+      case 'THUMBS_UP':
+        handleFeedingGesture();
+        break;
+      case 'FIST':
+        handleSleepGesture();
+        break;
+      case 'OPEN_PALM':
+        setShowHelp(true);
+        break;
+      default:
+        break;
     }
   };
 
-  const addLog = (action) => {
-    const newLog = { id: Date.now(), action, time: new Date().toLocaleTimeString() };
-    setLogs(prev => [newLog, ...prev].slice(0, 10));
+  // 🍼 FIXED FEEDING FUNCTION - Toggle Start/Stop
+  const handleFeedingGesture = () => {
+    if (feedingTimer) {
+      // STOP TIMER - Thumbs up detected while timer is running
+      console.log('Stopping feeding timer');
+      
+      // Clear the interval
+      clearInterval(feedingTimer);
+      setFeedingTimer(null);
+      
+      const duration = feedingDuration;
+      const side = feedingSide;
+      
+      // Log feeding with duration and side
+      addLog(`🍼 Feeding complete - ${side} side - ${formatTime(duration)}`);
+      
+      // Show reminder to switch sides for next feed
+      if (side === 'left') {
+        setFeedingSide('right');
+        addLog('💡 Next time feed on right side', 'tip');
+      } else {
+        setFeedingSide('left');
+        addLog('💡 Next time feed on left side', 'tip');
+      }
+      
+      // Store feeding data for patterns
+      const feedingData = {
+        id: Date.now(),
+        type: 'feeding',
+        duration: duration,
+        side: side,
+        time: new Date().toLocaleTimeString()
+      };
+      
+      const savedFeedings = JSON.parse(localStorage.getItem('feedingHistory') || '[]');
+      localStorage.setItem('feedingHistory', JSON.stringify([...savedFeedings, feedingData]));
+      
+      setFeedingDuration(0);
+      setFeedingStartTime(null);
+      
+      // Haptic feedback for stop
+      if (navigator.vibrate) {
+        navigator.vibrate([100, 50, 100]); // pattern for stop
+      }
+      
+    } else {
+      // START TIMER - Thumbs up detected while no timer running
+      console.log('Starting feeding timer');
+      
+      setFeedingStartTime(new Date());
+      
+      // Create a new interval
+      const interval = setInterval(() => {
+        setFeedingDuration(prev => prev + 1);
+      }, 1000);
+      
+      setFeedingTimer(interval);
+      
+      addLog(`🍼 Started feeding on ${feedingSide} side`, 'feeding-start');
+      
+      // Haptic feedback for start
+      if (navigator.vibrate) {
+        navigator.vibrate(100); // single buzz for start
+      }
+    }
   };
 
-  const handleLogout = () => { logout(); navigate('/'); };
+  // 😴 FIXED SLEEP FUNCTION - Toggle Start/Stop
+  const handleSleepGesture = () => {
+    if (sleepTimer) {
+      // STOP TIMER - Fist detected while timer is running
+      console.log('Stopping sleep timer');
+      
+      clearInterval(sleepTimer);
+      setSleepTimer(null);
+      
+      const duration = sleepDuration;
+      
+      // Log sleep with duration
+      addLog(`😴 Baby slept for ${formatTime(duration)}`, 'sleep-end');
+      
+      // Store sleep data for pattern prediction
+      const sleepData = {
+        id: Date.now(),
+        duration: duration,
+        time: new Date().toLocaleTimeString(),
+        date: new Date().toDateString()
+      };
+      
+      const savedSleeps = JSON.parse(localStorage.getItem('sleepHistory') || '[]');
+      const updatedSleeps = [...savedSleeps, sleepData];
+      localStorage.setItem('sleepHistory', JSON.stringify(updatedSleeps));
+      
+      // Predict next sleepy time
+      predictNextSleepTime(updatedSleeps);
+      
+      setSleepDuration(0);
+      setSleepStartTime(null);
+      
+    } else {
+      // START TIMER - Fist detected while no timer running
+      console.log('Starting sleep timer');
+      
+      setSleepStartTime(new Date());
+      
+      const interval = setInterval(() => {
+        setSleepDuration(prev => prev + 1);
+      }, 1000);
+      
+      setSleepTimer(interval);
+      
+      addLog('😴 Baby sleeping... Zzz', 'sleep-start');
+    }
+  };
+
+  // 🕒 Format time helper
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}m ${secs}s`;
+  };
+
+  // 🔮 Predict next sleep time based on patterns
+  const predictNextSleepTime = (history) => {
+    if (history.length < 3) return;
+    
+    // Simple average of last 3 sleep intervals
+    const last3 = history.slice(-3);
+    const avgDuration = last3.reduce((acc, curr) => acc + curr.duration, 0) / 3;
+    
+    // Predict next sleep in 2-3 hours if avg duration > 1 hour
+    if (avgDuration > 3600) { // more than 1 hour
+      const nextSleep = new Date(Date.now() + 2.5 * 60 * 60 * 1000);
+      addLog(`🔮 Next sleepy time predicted: ${nextSleep.toLocaleTimeString()}`, 'prediction');
+    }
+  };
+
+  // 🆘 ENHANCED EMERGENCY FUNCTIONS
+  const handleEmergencyCall = () => {
+    const helplineNumber = '0471-2552056'; // Kerala helpline
+    window.location.href = `tel:${helplineNumber}`;
+  };
+
+  const handleEmergencySMS = () => {
+    const helplineNumber = '0471-2552056';
+    const message = "URGENT: I need immediate assistance. Please call me back.";
+    window.location.href = `sms:${helplineNumber}?body=${encodeURIComponent(message)}`;
+  };
+
+  const handleAmbulanceCall = () => {
+    window.location.href = 'tel:108'; // Ambulance
+  };
+
+  const shareLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        const { latitude, longitude } = position.coords;
+        const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+        
+        // Copy to clipboard
+        navigator.clipboard.writeText(mapsUrl);
+        addLog('📍 Location copied to clipboard', 'tip');
+        
+        // If emergency contact set, could auto-send
+        if (emergencyContact) {
+          window.location.href = `sms:${emergencyContact}?body=${encodeURIComponent(`Emergency! My location: ${mapsUrl}`)}`;
+        }
+      });
+    } else {
+      addLog('❌ Geolocation not supported', 'error');
+    }
+  };
+
+  const addLog = (action, type = 'normal') => {
+    const newLog = {
+      id: Date.now(),
+      action: action,
+      time: new Date().toLocaleTimeString(),
+      type: type
+    };
+    setLogs([newLog, ...logs].slice(0, 15));
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  const closeHelp = () => {
+    setShowHelp(false);
+  };
+
+  const openEmergencyModal = () => {
+    setShowHelp(false);
+    setShowEmergencyModal(true);
+  };
+
+  const saveEmergencyContact = (number) => {
+    localStorage.setItem('emergencyContact', number);
+    setEmergencyContact(number);
+    setShowEmergencyModal(false);
+    addLog('✅ Emergency contact saved', 'tip');
+  };
+
+  // Debug function (optional)
+  const checkTimerState = () => {
+    console.log('Feeding Timer:', feedingTimer ? 'Running' : 'Stopped');
+    console.log('Sleep Timer:', sleepTimer ? 'Running' : 'Stopped');
+    console.log('Feeding Duration:', feedingDuration);
+    console.log('Sleep Duration:', sleepDuration);
+  };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F6F3EE' }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap');
-        .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
-        .sans { font-family: 'DM Sans', system-ui, sans-serif; }
-        
-        .tab-btn {
-          padding: 10px 24px;
-          border-radius: 40px;
-          border: none;
-          cursor: pointer;
-          font-family: 'DM Sans', sans-serif;
-          font-size: 14px;
-          font-weight: 400;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          transition: all 0.25s ease;
-          letter-spacing: 0.01em;
-        }
-        .tab-active { background-color: #487A7B; color: #F6F3EE; }
-        .tab-inactive { background-color: #FFFFFF; color: #487A7B; border: 1px solid rgba(72,122,123,0.2); }
-        .tab-inactive:hover { background-color: rgba(72,122,123,0.05); }
-        
-        .log-entry {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 14px 20px;
-          background: #F6F3EE;
-          border-radius: 14px;
-          margin-bottom: 8px;
-          transition: all 0.2s;
-        }
-        .log-entry:hover { background: #EDE9E3; }
-        
-        .quick-fab {
-          width: 52px;
-          height: 52px;
-          border-radius: 50%;
-          border: none;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 20px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-          transition: all 0.2s ease;
-        }
-        .quick-fab:hover { transform: scale(1.1); box-shadow: 0 8px 28px rgba(0,0,0,0.2); }
-        
-        .gesture-chip {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          padding: 20px 16px;
-          background: #F6F3EE;
-          border-radius: 18px;
-          flex: 1;
-          transition: transform 0.2s;
-        }
-        .gesture-chip:hover { transform: translateY(-2px); }
-      `}</style>
-
+    <div className="min-h-screen" style={{ backgroundColor: '#F6F3EE' }}>
       {/* Header */}
-      <header className="sans" style={{ background: '#FFFFFF', borderBottom: '1px solid rgba(212,165,165,0.25)', padding: '16px 32px', position: 'sticky', top: 0, zIndex: 50, backdropFilter: 'blur(8px)' }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
-              <FaHeart style={{ color: '#D4A5A5', fontSize: '14px' }} />
-              <span className="serif" style={{ fontSize: '20px', color: '#487A7B', fontWeight: 400 }}>MediMom</span>
+      <header className="py-4 px-6" style={{ backgroundColor: '#FFFFFF', borderBottom: '2px solid #D4A5A5' }}>
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="flex items-center space-x-4">
+            <Link to="/" className="flex items-center space-x-2">
+              <FaHeart style={{ color: '#D4A5A5' }} />
+              <span className="text-xl font-light" style={{ color: '#487A7B' }}>MediMom</span>
             </Link>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <span style={{ color: '#487A7B', fontSize: '14px', fontFamily: 'DM Sans, sans-serif', fontWeight: 300 }}>
-              Hi, {currentUser?.name?.split(' ')[0] || 'Mama'} 👋
+            <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: '#9CAF88', color: '#F6F3EE' }}>
+              2.1
             </span>
-            <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 20px', borderRadius: '40px', border: '1.5px solid rgba(72,122,123,0.3)', background: 'transparent', color: '#487A7B', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '13px', transition: 'all 0.2s' }}>
-              <FaSignOutAlt style={{ fontSize: '12px' }} />
-              <span>Logout</span>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <span style={{ color: '#487A7B' }}>
+              Hi, {currentUser?.email?.split('@')[0] || 'Mama'}
+            </span>
+            <button
+              onClick={handleLogout}
+              className="flex items-center space-x-2 px-4 py-2 rounded-full transition"
+              style={{ color: '#487A7B', border: '2px solid #487A7B' }}
+            >
+              <FaSignOutAlt />
+              <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* Main */}
-      <main style={{ maxWidth: '900px', margin: '0 auto', padding: '36px 24px 120px' }}>
-
-        {/* Baby Banner */}
-        {currentUser?.babyName && (
-          <div style={{ marginBottom: '28px', padding: '16px 24px', borderRadius: '16px', background: 'linear-gradient(135deg, #D4A5A5, #c89090)', color: '#F6F3EE', display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <FaBaby style={{ fontSize: '22px' }} />
-            <div className="sans">
-              <span style={{ fontWeight: 500 }}>{currentUser.babyName}</span>
-              {currentUser.babyAge && <span style={{ fontWeight: 300, fontSize: '14px' }}> · {currentUser.babyAge} old</span>}
-            </div>
-          </div>
-        )}
-
-        {/* Tabs */}
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '28px', overflowX: 'auto', paddingBottom: '4px' }}>
-          {[
-            { id: 'gesture', icon: <FaHandPaper style={{ fontSize: '13px' }} />, label: 'Gesture Logger' },
-            { id: 'baby', icon: <FaBaby style={{ fontSize: '13px' }} />, label: 'Baby Tracker' },
-            { id: 'mood', icon: <FaHeart style={{ fontSize: '13px' }} />, label: 'Mood' },
-          ].map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`tab-btn ${activeTab === tab.id ? 'tab-active' : 'tab-inactive'}`}>
-              {tab.icon}
-              {tab.label}
-            </button>
-          ))}
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto p-6">
+        {/* Tab Navigation */}
+        <div className="flex space-x-2 mb-6 overflow-x-auto pb-2">
+          <button
+            onClick={() => setActiveTab('gesture')}
+            className={`px-6 py-3 rounded-xl font-medium transition flex items-center space-x-2 ${
+              activeTab === 'gesture' 
+                ? 'text-white' 
+                : 'text-gray-600'
+            }`}
+            style={{
+              backgroundColor: activeTab === 'gesture' ? '#487A7B' : '#FFFFFF',
+              color: activeTab === 'gesture' ? '#F6F3EE' : '#487A7B'
+            }}
+          >
+            <FaHandPaper />
+            <span>Gesture Logger</span>
+          </button>
+          
+          <button
+            onClick={() => setActiveTab('baby')}
+            className={`px-6 py-3 rounded-xl font-medium transition flex items-center space-x-2 ${
+              activeTab === 'baby' 
+                ? 'text-white' 
+                : 'text-gray-600'
+            }`}
+            style={{
+              backgroundColor: activeTab === 'baby' ? '#487A7B' : '#FFFFFF',
+              color: activeTab === 'baby' ? '#F6F3EE' : '#487A7B'
+            }}
+          >
+            <FaBaby />
+            <span>Baby Tracker</span>
+          </button>
+          
+          <button
+            onClick={() => setActiveTab('mood')}
+            className={`px-6 py-3 rounded-xl font-medium transition flex items-center space-x-2 ${
+              activeTab === 'mood' 
+                ? 'text-white' 
+                : 'text-gray-600'
+            }`}
+            style={{
+              backgroundColor: activeTab === 'mood' ? '#487A7B' : '#FFFFFF',
+              color: activeTab === 'mood' ? '#F6F3EE' : '#487A7B'
+            }}
+          >
+            <FaHeart />
+            <span>Mood</span>
+          </button>
         </div>
 
-        {/* Content Card */}
-        <div style={{ background: '#FFFFFF', borderRadius: '28px', padding: '40px', boxShadow: '0 4px 40px rgba(72,122,123,0.08)', border: '1px solid rgba(212,165,165,0.1)' }}>
-
+        {/* Content Area */}
+        <div className="rounded-2xl p-6 shadow-lg" style={{ backgroundColor: '#FFFFFF' }}>
           {activeTab === 'gesture' && (
             <div>
-              <h2 className="serif" style={{ fontSize: '36px', fontWeight: 300, color: '#487A7B', marginBottom: '8px' }}>Hands-Free Logger</h2>
-              <p className="sans" style={{ color: '#9CAF88', fontSize: '14px', fontWeight: 300, marginBottom: '32px' }}>Show a gesture to log an action</p>
-
-              {/* Gesture Guide */}
-              <div style={{ display: 'flex', gap: '12px', marginBottom: '32px' }}>
-                {[
-                  { emoji: '👍', label: 'Feeding', sub: 'Thumbs up' },
-                  { emoji: '✊', label: 'Sleep', sub: 'Fist' },
-                  { emoji: '✋', label: 'Emergency', sub: 'Open palm' },
-                ].map((g, i) => (
-                  <div key={i} className="gesture-chip">
-                    <div style={{ fontSize: '32px', marginBottom: '10px' }}>{g.emoji}</div>
-                    <div className="sans" style={{ color: '#487A7B', fontSize: '14px', fontWeight: 500 }}>{g.label}</div>
-                    <div className="sans" style={{ color: '#B8C9C9', fontSize: '12px', fontWeight: 300, marginTop: '2px' }}>{g.sub}</div>
+              <h2 className="text-2xl font-light mb-6" style={{ color: '#487A7B' }}>
+                Smart Gesture Logger
+              </h2>
+              
+              {/* Active Timers Display */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                {feedingTimer && (
+                  <div className="p-4 rounded-xl" style={{ backgroundColor: '#D4A5A5', color: '#F6F3EE' }}>
+                    <FaClock className="inline mr-2" />
+                    <span className="font-medium">Feeding: {formatTime(feedingDuration)}</span>
+                    <div className="text-sm mt-1">Side: {feedingSide}</div>
                   </div>
-                ))}
+                )}
+                {sleepTimer && (
+                  <div className="p-4 rounded-xl" style={{ backgroundColor: '#9CAF88', color: '#F6F3EE' }}>
+                    <FaClock className="inline mr-2" />
+                    <span className="font-medium">Sleep: {formatTime(sleepDuration)}</span>
+                  </div>
+                )}
+              </div>
+              
+              {/* Gesture Guide */}
+              <div className="grid grid-cols-3 gap-3 mb-6">
+                <div className="text-center p-4 rounded-xl" style={{ backgroundColor: '#F6F3EE' }}>
+                  <div className="text-3xl mb-2">👍</div>
+                  <div className="font-medium" style={{ color: '#487A7B' }}>Feeding Timer</div>
+                  <div className="text-xs mt-1" style={{ color: '#9CAF88' }}>Tap to start/stop • Tracks duration</div>
+                </div>
+                <div className="text-center p-4 rounded-xl" style={{ backgroundColor: '#F6F3EE' }}>
+                  <div className="text-3xl mb-2">✊</div>
+                  <div className="font-medium" style={{ color: '#487A7B' }}>Sleep Timer</div>
+                  <div className="text-xs mt-1" style={{ color: '#9CAF88' }}>Tracks sleep • Predicts next sleep</div>
+                </div>
+                <div className="text-center p-4 rounded-xl" style={{ backgroundColor: '#F6F3EE' }}>
+                  <div className="text-3xl mb-2">✋</div>
+                  <div className="font-medium" style={{ color: '#487A7B' }}>Emergency Help</div>
+                  <div className="text-xs mt-1" style={{ color: '#9CAF88' }}>One-click call • SMS • Location</div>
+                </div>
               </div>
 
               {/* Camera */}
-              <div style={{ marginBottom: '24px' }}>
+              <div className="mb-6">
                 <CameraComponent onGestureDetected={handleGesture} />
               </div>
 
               {/* Last Gesture */}
               {lastGesture && (
-                <div style={{ marginBottom: '24px', padding: '14px 20px', borderRadius: '14px', background: 'linear-gradient(135deg, rgba(212,165,165,0.2), rgba(212,165,165,0.1))', border: '1px solid rgba(212,165,165,0.3)', textAlign: 'center', color: '#487A7B', fontFamily: 'DM Sans, sans-serif', fontSize: '14px' }}>
-                  ✓ Detected: <strong>{lastGesture === 'THUMBS_UP' ? '👍 Feeding' : lastGesture === 'FIST' ? '✊ Baby Sleep' : '✋ Help'}</strong>
+                <div className="mb-4 p-3 rounded-lg text-center" style={{ backgroundColor: '#D4A5A5', color: '#F6F3EE' }}>
+                  Detected: {
+                    lastGesture === 'THUMBS_UP' ? '👍 Feeding' + (feedingTimer ? ' (Stop)' : ' (Start)') :
+                    lastGesture === 'FIST' ? '✊ Baby Sleep' + (sleepTimer ? ' (Stop)' : ' (Start)') :
+                    lastGesture === 'OPEN_PALM' ? '✋ Emergency Help' : lastGesture
+                  }
                 </div>
               )}
 
-              {/* Logs */}
-              <div>
-                <h3 className="sans" style={{ color: '#487A7B', fontSize: '13px', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '16px' }}>Recent Activity</h3>
+              {/* Recent Logs */}
+              <h3 className="font-medium mb-3" style={{ color: '#487A7B' }}>Recent Activity</h3>
+              <div className="space-y-2 max-h-60 overflow-y-auto">
                 {logs.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '40px', color: '#C5D3D3', fontFamily: 'DM Sans, sans-serif', fontSize: '14px', fontWeight: 300 }}>
-                    No logs yet — show a gesture to begin ✨
-                  </div>
+                  <p className="text-center py-4" style={{ color: '#9CAF88' }}>No logs yet. Show a gesture!</p>
                 ) : (
-                  <div style={{ maxHeight: '260px', overflowY: 'auto' }}>
-                    {logs.map(log => (
-                      <div key={log.id} className="log-entry">
-                        <span className="sans" style={{ color: '#487A7B', fontSize: '15px' }}>
-                          {log.action === 'Feeding' ? '🍼' : '😴'} {log.action}
-                        </span>
-                        <span className="sans" style={{ color: '#B8C9C9', fontSize: '13px', fontWeight: 300 }}>{log.time}</span>
-                      </div>
-                    ))}
-                  </div>
+                  logs.map(log => (
+                    <div key={log.id} className="flex justify-between items-center p-3 rounded-lg" 
+                         style={{ backgroundColor: log.type === 'tip' ? '#D4A5A5' : log.type === 'prediction' ? '#9CAF88' : '#F6F3EE' }}>
+                      <span className="font-medium" style={{ color: '#487A7B' }}>
+                        {log.action}
+                      </span>
+                      <span style={{ color: '#9CAF88' }}>{log.time}</span>
+                    </div>
+                  ))
                 )}
               </div>
             </div>
           )}
 
           {activeTab === 'baby' && (
-            <div style={{ textAlign: 'center', padding: '48px 0' }}>
-              <div style={{ fontSize: '52px', marginBottom: '16px' }}>👶</div>
-              <h3 className="serif" style={{ fontSize: '28px', fontWeight: 300, color: '#487A7B', marginBottom: '8px' }}>Baby Tracker</h3>
-              <p className="sans" style={{ color: '#9CAF88', fontSize: '15px', fontWeight: 300 }}>Coming soon — track feeds, sleep, and diapers</p>
+            <div className="text-center py-12">
+              <FaBaby className="text-6xl mx-auto mb-4" style={{ color: '#9CAF88' }} />
+              <h3 className="text-xl font-light mb-2" style={{ color: '#487A7B' }}>Baby Tracker</h3>
+              <p style={{ color: '#9CAF88' }}>Coming soon! Track feeds, sleep, and diapers.</p>
             </div>
           )}
 
           {activeTab === 'mood' && (
-            <div style={{ textAlign: 'center', padding: '48px 0' }}>
-              <div style={{ fontSize: '52px', marginBottom: '16px' }}>💙</div>
-              <h3 className="serif" style={{ fontSize: '28px', fontWeight: 300, color: '#487A7B', marginBottom: '8px' }}>Mood Tracker</h3>
-              <p className="sans" style={{ color: '#9CAF88', fontSize: '15px', fontWeight: 300 }}>Coming soon — check in daily and track your wellbeing</p>
+            <div className="text-center py-12">
+              <FaHeart className="text-6xl mx-auto mb-4" style={{ color: '#D4A5A5' }} />
+              <h3 className="text-xl font-light mb-2" style={{ color: '#487A7B' }}>Mood Tracker</h3>
+              <p style={{ color: '#9CAF88' }}>Coming soon! Check in daily and track your wellbeing.</p>
             </div>
           )}
         </div>
-      </main>
 
-      {/* Quick Action FABs */}
-      <div style={{ position: 'fixed', bottom: '28px', right: '28px', display: 'flex', flexDirection: 'column', gap: '12px', zIndex: 40 }}>
-        <button onClick={() => addLog('Feeding')} className="quick-fab" style={{ background: '#487A7B', color: '#F6F3EE' }} title="Log Feeding">🍼</button>
-        <button onClick={() => addLog('Baby Sleep')} className="quick-fab" style={{ background: '#9CAF88', color: '#F6F3EE' }} title="Log Sleep">😴</button>
-        <button onClick={() => setShowHelp(true)} className="quick-fab" style={{ background: '#D4A5A5', color: '#F6F3EE' }} title="Emergency Help">🆘</button>
+        {/* Quick Action Buttons */}
+        <div className="fixed bottom-6 right-6 flex flex-col space-y-3">
+          <button
+            onClick={handleFeedingGesture}
+            className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl transition transform hover:scale-110"
+            style={{ backgroundColor: '#487A7B', color: '#F6F3EE' }}
+            title="Toggle Feeding Timer"
+          >
+            {feedingTimer ? '⏹️' : '🍼'}
+          </button>
+          <button
+            onClick={handleSleepGesture}
+            className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl transition transform hover:scale-110"
+            style={{ backgroundColor: '#9CAF88', color: '#F6F3EE' }}
+            title="Toggle Sleep Timer"
+          >
+            {sleepTimer ? '⏹️' : '😴'}
+          </button>
+          <button
+            onClick={() => setShowHelp(true)}
+            className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl transition transform hover:scale-110"
+            style={{ backgroundColor: '#D4A5A5', color: '#487A7B' }}
+            title="Emergency Help"
+          >
+            🆘
+          </button>
+        </div>
+
+        {/* Hidden debug button - remove in production */}
+        <button onClick={checkTimerState} className="hidden">Debug</button>
       </div>
 
-      {/* Help Modal */}
+      {/* Enhanced Help Modal with One-Click Actions */}
       {showHelp && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(72,90,90,0.4)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', zIndex: 100 }}>
-          <div style={{ background: '#FFFFFF', borderRadius: '28px', padding: '40px', maxWidth: '440px', width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.15)' }}>
-            <h2 className="serif" style={{ fontSize: '32px', fontWeight: 300, color: '#487A7B', marginBottom: '8px' }}>🆘 Quick Help</h2>
-            <p className="sans" style={{ color: '#9CAF88', fontSize: '14px', fontWeight: 300, marginBottom: '28px' }}>Important information when you need it fast</p>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="rounded-2xl p-6 max-w-md w-full" style={{ backgroundColor: '#FFFFFF' }}>
+            <h2 className="text-2xl font-light mb-4" style={{ color: '#487A7B' }}>🆘 Emergency Help</h2>
             
-            {[
-              { title: 'Fever Threshold', content: <p className="sans" style={{ color: '#8BA8A9', fontSize: '14px', fontWeight: 300 }}>Baby: 100.4°F (38°C) or higher — contact your pediatrician</p> },
-              { title: 'When to go to hospital', content: (
-                <ul style={{ color: '#8BA8A9', fontFamily: 'DM Sans, sans-serif', fontSize: '14px', fontWeight: 300, paddingLeft: '20px', margin: 0, lineHeight: 2 }}>
+            <div className="space-y-4">
+              {/* One-Click Call Buttons */}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={handleEmergencyCall}
+                  className="p-4 rounded-xl flex flex-col items-center gap-2 transition hover:scale-105"
+                  style={{ backgroundColor: '#D4A5A5' }}
+                >
+                  <FaPhone className="text-2xl" style={{ color: '#F6F3EE' }} />
+                  <span style={{ color: '#F6F3EE' }}>Call Helpline</span>
+                  <span className="text-xs" style={{ color: '#F6F3EE' }}>0471-2552056</span>
+                </button>
+                
+                <button
+                  onClick={handleAmbulanceCall}
+                  className="p-4 rounded-xl flex flex-col items-center gap-2 transition hover:scale-105"
+                  style={{ backgroundColor: '#487A7B' }}
+                >
+                  <FaPhone className="text-2xl" style={{ color: '#F6F3EE' }} />
+                  <span style={{ color: '#F6F3EE' }}>Call Ambulance</span>
+                  <span className="text-xs" style={{ color: '#F6F3EE' }}>108</span>
+                </button>
+              </div>
+
+              {/* SMS and Location */}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={handleEmergencySMS}
+                  className="p-4 rounded-xl flex flex-col items-center gap-2 transition hover:scale-105"
+                  style={{ backgroundColor: '#9CAF88' }}
+                >
+                  <FaSms className="text-2xl" style={{ color: '#F6F3EE' }} />
+                  <span style={{ color: '#F6F3EE' }}>Send SMS</span>
+                  <span className="text-xs" style={{ color: '#F6F3EE' }}>To helpline</span>
+                </button>
+                
+                <button
+                  onClick={shareLocation}
+                  className="p-4 rounded-xl flex flex-col items-center gap-2 transition hover:scale-105"
+                  style={{ backgroundColor: '#487A7B' }}
+                >
+                  <FaMapMarkerAlt className="text-2xl" style={{ color: '#F6F3EE' }} />
+                  <span style={{ color: '#F6F3EE' }}>Share Location</span>
+                  <span className="text-xs" style={{ color: '#F6F3EE' }}>Copy to clipboard</span>
+                </button>
+              </div>
+
+              {/* Set Emergency Contact */}
+              <button
+                onClick={() => setShowEmergencyModal(true)}
+                className="w-full p-3 rounded-xl text-center transition"
+                style={{ backgroundColor: '#F6F3EE', color: '#487A7B' }}
+              >
+                Set Emergency Contact
+              </button>
+
+              {/* Emergency Info */}
+              <div className="p-4 rounded-xl" style={{ backgroundColor: '#F6F3EE' }}>
+                <h3 className="font-medium mb-2" style={{ color: '#487A7B' }}>Fever Threshold</h3>
+                <p style={{ color: '#9CAF88' }}>Baby: 100.4°F (38°C) or higher</p>
+              </div>
+              
+              <div className="p-4 rounded-xl" style={{ backgroundColor: '#F6F3EE' }}>
+                <h3 className="font-medium mb-2" style={{ color: '#487A7B' }}>When to go to hospital</h3>
+                <ul className="list-disc list-inside" style={{ color: '#9CAF88' }}>
                   <li>Difficulty breathing</li>
                   <li>Persistent vomiting</li>
                   <li>Unusual drowsiness</li>
                   <li>Not feeding</li>
                 </ul>
-              )},
-              { title: 'Emergency Contacts', content: (
-                <div className="sans" style={{ color: '#8BA8A9', fontSize: '14px', fontWeight: 300, lineHeight: 1.75 }}>
-                  <p>Kerala Helpline: <strong style={{ color: '#487A7B' }}>0471-2552056</strong></p>
-                  <p>Ambulance: <strong style={{ color: '#487A7B' }}>108</strong></p>
-                </div>
-              )},
-            ].map((item, i) => (
-              <div key={i} style={{ padding: '18px 20px', borderRadius: '16px', background: '#F6F3EE', marginBottom: '12px' }}>
-                <h3 className="sans" style={{ color: '#487A7B', fontSize: '13px', fontWeight: 500, marginBottom: '10px', letterSpacing: '0.04em' }}>{item.title}</h3>
-                {item.content}
               </div>
-            ))}
+            </div>
             
-            <button onClick={() => setShowHelp(false)} style={{ width: '100%', marginTop: '20px', padding: '14px', borderRadius: '14px', background: '#487A7B', color: '#F6F3EE', border: 'none', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '15px', fontWeight: 400, transition: 'all 0.2s' }}>
+            <button
+              onClick={closeHelp}
+              className="w-full mt-6 py-3 rounded-xl font-medium transition"
+              style={{ backgroundColor: '#487A7B', color: '#F6F3EE' }}
+            >
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Emergency Contact Modal */}
+      {showEmergencyModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="rounded-2xl p-6 max-w-md w-full" style={{ backgroundColor: '#FFFFFF' }}>
+            <h2 className="text-2xl font-light mb-4" style={{ color: '#487A7B' }}>Set Emergency Contact</h2>
+            
+            <input
+              type="tel"
+              placeholder="Enter phone number"
+              className="w-full p-3 rounded-xl border-2 mb-4"
+              style={{ borderColor: '#9CAF88', backgroundColor: '#F6F3EE' }}
+              id="emergencyNumber"
+            />
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  const number = document.getElementById('emergencyNumber').value;
+                  if (number) saveEmergencyContact(number);
+                }}
+                className="flex-1 py-3 rounded-xl font-medium transition"
+                style={{ backgroundColor: '#487A7B', color: '#F6F3EE' }}
+              >
+                Save
+              </button>
+              <button
+                onClick={() => setShowEmergencyModal(false)}
+                className="flex-1 py-3 rounded-xl font-medium transition"
+                style={{ backgroundColor: '#F6F3EE', color: '#487A7B' }}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}

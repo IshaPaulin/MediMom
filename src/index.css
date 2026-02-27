@@ -1,3 +1,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --warm-cream: #F6F3EE;
+  --muted-sage: #9CAF88;
+  --soft-dusty-rose: #D4A5A5;
+  --deep-muted-teal: #487A7B;
+}
+
+body {
+  background-color: var(--warm-cream);
+}

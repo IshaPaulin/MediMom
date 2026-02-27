@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import CameraComponent from '../components/Camera';
-import { FaSignOutAlt, FaBaby, FaHeart, FaHandPaper, FaPhone, FaSms, FaMapMarkerAlt, FaTimes } from 'react-icons/fa';
+import { FaSignOutAlt, FaBaby, FaHeart, FaHandPaper, FaPhone, FaSms,  FaTimes } from 'react-icons/fa';
 
 const Dashboard = () => {
   const { currentUser, logout } = useAuth();
@@ -108,17 +108,7 @@ const Dashboard = () => {
   const handleEmergencySMS  = () => {
     window.location.href = `sms:0471-2552056?body=${encodeURIComponent('URGENT: I need immediate assistance. Please call me back.')}`;
   };
-  const shareLocation = () => {
-    if (!navigator.geolocation) { addLog('❌ Geolocation not supported', 'error'); return; }
-    navigator.geolocation.getCurrentPosition(({ coords }) => {
-      const url = `https://www.google.com/maps?q=${coords.latitude},${coords.longitude}`;
-      navigator.clipboard.writeText(url);
-      addLog('📍 Location copied to clipboard', 'tip');
-      if (emergencyContact) {
-        window.location.href = `sms:${emergencyContact}?body=${encodeURIComponent(`Emergency! My location: ${url}`)}`;
-      }
-    });
-  };
+  
 
   const saveEmergencyContact = () => {
     if (!emergencyInput) return;
@@ -360,11 +350,6 @@ const Dashboard = () => {
                 <FaSms style={{ color: '#9CAF88', fontSize: '22px' }} />
                 <div className="sans" style={{ color: '#487A7B', fontSize: '13px', fontWeight: 500 }}>Send SMS</div>
                 <div className="sans" style={{ color: '#9CAF88', fontSize: '11px' }}>To helpline</div>
-              </button>
-              <button onClick={shareLocation} className="emergency-btn" style={{ background: 'rgba(72,122,123,0.08)', border: '1px solid rgba(72,122,123,0.2)' }}>
-                <FaMapMarkerAlt style={{ color: '#487A7B', fontSize: '22px' }} />
-                <div className="sans" style={{ color: '#487A7B', fontSize: '13px', fontWeight: 500 }}>Share Location</div>
-                <div className="sans" style={{ color: '#9CAF88', fontSize: '11px' }}>Copy to clipboard</div>
               </button>
             </div>
 

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-
+import { CohereClientV2 } from 'cohere-ai';
 const SUGGESTED_QUESTIONS = [
   "Is spotting normal in first trimester?",
   "What foods should I avoid?",
@@ -31,57 +31,60 @@ export default function ChatBot() {
   }, [isOpen]);
 
   const sendMessage = async (text) => {
-    const userText = text || input.trim();
-    if (!userText || loading) return;
+  const userText = text || input.trim();
+  if (!userText || loading) return;
 
-    const newMessages = [...messages, { role: "user", content: userText }];
-    setMessages(newMessages);
-    setInput("");
-    setLoading(true);
+  const newMessages = [...messages, { role: "user", content: userText }];
+  setMessages(newMessages);
+  setInput("");
+  setLoading(true);
 
-    try {
-      const API_KEY = import.meta.env.VITE_GROK_API_KEY;
+  try {
+    const cohere = new CohereClientV2({
+      token: import.meta.env.VITE_COHERE_API_KEY, // NEVER hardcode
+    });
 
-const response = await fetch('https://api.x.ai/v1/chat/completions', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${API_KEY}`
-  },
-  body: JSON.stringify({
-    model: 'grok-3-mini',
-    messages: [
-      {
-        role: 'system',
-        content: 'You are Mia, MediMom\'s warm pregnancy health assistant. Answer only pregnancy-related questions with empathy and care. For dangerous symptoms always recommend immediate medical attention.'
-      },
-      ...newMessages.map(m => ({
-        role: m.role === 'assistant' ? 'assistant' : 'user',
-        content: m.content
-      }))
-    ],
-    max_tokens: 1024,
-    temperature: 0.7
-  })
-});
-
-const data = await response.json();
-const reply = data.choices?.[0]?.message?.content || "I couldn't process that. Please try again.";
-setMessages([...newMessages, { role: 'assistant', content: reply }]);}
-catch (err) {
-      console.error("Chat error:", err);
-      setMessages([
-        ...newMessages,
+    const response = await cohere.chat({
+      model: "command-a-03-2025",
+      temperature: 0.3,
+      messages: [
         {
-          role: "assistant",
+          role: "system",
           content:
-            "Sorry, I'm having trouble connecting right now. Please check your internet and try again. 💕",
+            "You are Mia, MediMom's warm pregnancy health assistant. Answer only pregnancy-related questions with empathy and care. For dangerous symptoms always recommend immediate medical attention.",
         },
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
+        ...newMessages.map((m) => ({
+          role: m.role === "assistant" ? "assistant" : "user",
+          content: m.content,
+        })),
+      ],
+    });
+
+    console.log("Cohere response:", response);
+
+    // ✅ CORRECT parsing for Cohere V2
+    const reply =
+      response?.message?.content?.[0]?.text ||
+      "I couldn't process that. Please try again.";
+
+    setMessages([
+      ...newMessages,
+      { role: "assistant", content: reply },
+    ]);
+  } catch (err) {
+    console.error("Chat error:", err);
+    setMessages([
+      ...newMessages,
+      {
+        role: "assistant",
+        content:
+          "Sorry, I'm having trouble connecting right now. Please try again. 💕",
+      },
+    ]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleKey = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {

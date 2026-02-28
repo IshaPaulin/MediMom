@@ -98,6 +98,7 @@ npm run dev
 *Chronological feed and sleep log with timeline view*
 
 ![Doctor Summary PDF](https://github.com/user-attachments/assets/8d8274cd-a0ca-4cea-8602-9e842245c133)
+
 *Auto-generated doctor-ready PDF summary of tracked data*
 
 **Mood Tracker**

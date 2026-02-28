@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FaHeart } from 'react-icons/fa';
+import Logo from '../assets/logo/MediMom_logo.svg';
 import { FcGoogle } from 'react-icons/fc';
 
 const Signup = () => {
@@ -130,8 +130,8 @@ const Signup = () => {
       {/* Nav */}
       <nav className="sans" style={{ padding: '24px 32px' }}>
         <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
-          <FaHeart style={{ color: '#D4A5A5', fontSize: '14px' }} />
-          <span className="serif" style={{ fontSize: '20px', color: '#487A7B', fontWeight: 400 }}>MediMom</span>
+          <img src={Logo} alt="MediMom" style={{ height: '36px', objectFit: 'contain' }} />
+          <span className="serif" style={{ fontSize:'20px', color:'#487A7B', fontWeight:400 }}>MediMom</span>
         </Link>
       </nav>
 

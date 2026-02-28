@@ -41,7 +41,7 @@ export default function ChatBot() {
 
     try {
       // Call our own serverless function instead of Anthropic directly
-    const API_KEY = "AIzaSyDa_G1sKCZoizWgI4uFnLNNq_ERIMZPkcY";
+    const API_KEY = import.meta.env.API_KEY;
 
 const geminiMessages = newMessages.map(m => ({
   role: m.role === "assistant" ? "model" : "user",

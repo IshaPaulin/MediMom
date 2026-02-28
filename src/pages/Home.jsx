@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FaHeart, FaHandPaper, FaBaby, FaPhoneAlt, FaChartLine, FaLeaf, FaShieldAlt, FaLock } from 'react-icons/fa';
-
+import Logo from '../assets/logo/MediMom_logo.svg';
 const Home = () => {
   const { currentUser } = useAuth();
 
@@ -29,8 +29,7 @@ const Home = () => {
       <nav className="sans" style={{ padding: '24px 32px', backgroundColor: '#F6F3EE', position: 'sticky', top: 0, zIndex: 100, borderBottom: '1px solid rgba(212,165,165,0.2)', backdropFilter: 'blur(8px)' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <FaHeart style={{ color: '#D4A5A5', fontSize: '16px' }} />
-            <span className="serif" style={{ fontSize: '22px', fontWeight: 400, color: '#487A7B', letterSpacing: '0.02em' }}>MediMom</span>
+            <img src={Logo} alt="MediMom" style={{ height: '36px', objectFit: 'contain' }} /><span className="serif" style={{ fontSize:'20px', color:'#487A7B', fontWeight:400 }}>MediMom</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             {currentUser ? (
@@ -59,10 +58,6 @@ const Home = () => {
         <p className="sans" style={{ color: '#6B8C8C', fontSize: '18px', lineHeight: '1.8', maxWidth: '520px', margin: '0 auto 48px', fontWeight: 300 }}>
           Baby tracking and maternal mental wellbeing in one gentle space — designed for the beautiful, exhausting first weeks of motherhood.
         </p>
-        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <Link to="/signup" className="btn-primary">Start daily check-in</Link>
-          <Link to="#features" className="btn-secondary">See how it works</Link>
-        </div>
       </section>
 
       {/* Wave divider */}

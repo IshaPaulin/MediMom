@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import CameraComponent from '../components/Camera';
 import BabyTracker from '../components/BabyTracker';
+import Logo from '../assets/logo/MediMom_logo.svg';
 import { FaSignOutAlt, FaBaby, FaHeart, FaHandPaper, FaPhone, FaSms, FaTimes, FaLeaf } from 'react-icons/fa';
 
 // ── Mood Tracker Component ─────────────────────────────────────
@@ -486,8 +487,7 @@ const Dashboard = () => {
       <header className="sans" style={{ background:'#FFFFFF', borderBottom:'1px solid rgba(212,165,165,0.25)', padding:'16px 32px', position:'sticky', top:0, zIndex:50 }}>
         <div style={{ maxWidth:'900px', margin:'0 auto', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
           <Link to="/" style={{ display:'flex', alignItems:'center', gap:'8px', textDecoration:'none' }}>
-            <FaHeart style={{ color:'#D4A5A5', fontSize:'14px' }} />
-            <span className="serif" style={{ fontSize:'20px', color:'#487A7B', fontWeight:400 }}>MediMom</span>
+            <img src={Logo} alt="MediMom" style={{ height: '36px', objectFit: 'contain' }} /><span className="serif" style={{ fontSize:'20px', color:'#487A7B', fontWeight:400 }}>MediMom</span>
           </Link>
           <div style={{ display:'flex', alignItems:'center', gap:'16px' }}>
             <span className="sans" style={{ color:'#487A7B', fontSize:'14px', fontWeight:300 }}>

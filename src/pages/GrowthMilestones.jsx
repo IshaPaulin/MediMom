@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FaHeart, FaSignOutAlt } from 'react-icons/fa';
+import Logo from '../assets/logo/MediMom_logo.svg';
 
 // ── Milestone data ────────────────────────────────────────────────────────────
 const DATA = {
@@ -225,7 +226,7 @@ const GrowthMilestones = () => {
       <header className="sans" style={{ background:'#fff', borderBottom:'1px solid rgba(212,165,165,0.25)', padding:'16px 32px', position:'sticky', top:0, zIndex:50 }}>
         <div style={{ maxWidth:'960px', margin:'0 auto', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
           <Link to="/" style={{ display:'flex', alignItems:'center', gap:'8px', textDecoration:'none' }}>
-            <FaHeart style={{ color:'#D4A5A5', fontSize:'14px' }} />
+            <img src={Logo} alt="MediMom" style={{ height: '36px', objectFit: 'contain' }} />
             <span className="serif" style={{ fontSize:'20px', color:'#487A7B', fontWeight:400 }}>MediMom</span>
           </Link>
           <div style={{ display:'flex', gap:'16px', alignItems:'center' }}>

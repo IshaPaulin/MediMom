@@ -39,7 +39,7 @@ MediMom provides a unified platform with real-time gesture detection for instant
 - ✋ **Gesture-Based Emergency Access** — Open-palm detection instantly opens emergency helpbox
 - 🍼 **Baby Tracker** — Log feed and sleep sessions with retroactive entry support
 - 📄 **Doctor Summary PDF** — Auto-compiled, exportable pediatric visit summaries
-- 🤖 **AI Chatbot (Mia)** — Powered by Grok API for parenting guidance and reassurance
+- 🤖 **AI Chatbot (Mia)** — Powered by cohere API for parenting guidance and reassurance
 - 🌱 **Growth & Milestones** — Month-based interactive newborn development insights
 
 ---
@@ -61,7 +61,7 @@ npm install
 #### Run
 ```bash
 # Create a .env file in the root directory and add:
-# VITE_GROK_API_KEY=your_api_key_here
+# VITE_cohere_API_KEY=your_api_key_here
 
 npm run dev
 ```
@@ -118,6 +118,9 @@ npm run dev
 ![Growth 3](https://github.com/user-attachments/assets/3a32c3b1-9339-4270-9600-e6adea530651)
 *Interactive month-based baby development insights with tappable body zones*
 
+**Chatbot**
+![5f463b5e-67a4-4734-94ca-1746dda7a8bf](https://github.com/user-attachments/assets/6b8c1ce9-213c-45ae-bf45-78899be3f7b4)
+
 ---
 
 ### Diagrams
@@ -139,7 +142,7 @@ PDF Summary Generator
 
 User Query
     ↓
-Grok API
+cohere API
     ↓
 AI Chatbot Response (Mia)
 

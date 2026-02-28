@@ -40,31 +40,35 @@ export default function ChatBot() {
     setLoading(true);
 
     try {
-      // Call our own serverless function instead of Anthropic directly
-    const API_KEY = import.meta.env.API_KEY;
+      const API_KEY = import.meta.env.VITE_GROK_API_KEY;
 
-const geminiMessages = newMessages.map(m => ({
-  role: m.role === "assistant" ? "model" : "user",
-  parts: [{ text: m.content }]
-}));
-
-const response = await fetch(
-  `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${API_KEY}`,
-  {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      system_instruction: { parts: [{ text: "You are Mia, MediMom's warm pregnancy health assistant. Answer only pregnancy-related questions with empathy and care. For dangerous symptoms always recommend immediate medical attention." }] },
-      contents: geminiMessages,
-      generationConfig: { maxOutputTokens: 1024, temperature: 0.7 }
-    })
-  }
-);
+const response = await fetch('https://api.x.ai/v1/chat/completions', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${API_KEY}`
+  },
+  body: JSON.stringify({
+    model: 'grok-3-mini',
+    messages: [
+      {
+        role: 'system',
+        content: 'You are Mia, MediMom\'s warm pregnancy health assistant. Answer only pregnancy-related questions with empathy and care. For dangerous symptoms always recommend immediate medical attention.'
+      },
+      ...newMessages.map(m => ({
+        role: m.role === 'assistant' ? 'assistant' : 'user',
+        content: m.content
+      }))
+    ],
+    max_tokens: 1024,
+    temperature: 0.7
+  })
+});
 
 const data = await response.json();
-const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't process that. Please try again.";
-setMessages([...newMessages, { role: "assistant", content: reply }]);
-    } catch (err) {
+const reply = data.choices?.[0]?.message?.content || "I couldn't process that. Please try again.";
+setMessages([...newMessages, { role: 'assistant', content: reply }]);}
+catch (err) {
       console.error("Chat error:", err);
       setMessages([
         ...newMessages,
